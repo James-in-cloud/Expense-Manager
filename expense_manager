@@ -1,0 +1,113 @@
+import json
+data = {
+    'categories' : [],
+    'expenses' : []
+}
+
+def save_to_file():
+    with open("expense_manager.json", 'w') as f:
+        json.dump(data, f, indent = 4)
+
+def load_from_file():
+    global data
+    try:
+        with open('expense_manager.json', 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError as e:
+        print('Error: ', e)
+
+def display():
+    print('Expense Manager')
+    print('---------------')
+    print('1. Add new category'.title())
+    print('2. Add new expense'.title())
+    print('3. List categories'.title())
+    print('4. List expenses'.title())
+    print('5. Visualize expense'.title())
+    print('q. Quit')
+
+def add_new_category():
+    print('Add New Category')
+    print('----------------')
+    category = input('Category Name: '.strip())
+    # data.get('categories')
+    data['categories'].append(category)
+    print(data['categories'])
+    save_to_file()
+    print('New category added successfully!')
+
+from prettytable import PrettyTable
+def list_all_categories():
+    print('List all categories')
+    table = PrettyTable(['Categories'])
+    for cat in data['categories']:
+        table.add_row([cat])
+    table.align = 'l'
+    print(table)
+
+from datetime import date
+def add_new_expenses():
+    print('Add New Expenses')
+    print('----------------')
+    categories = data['categories']
+    for i in range(len(categories)):
+        print(f'{i + 1}. {categories[i]}')
+    choice = input('Choose a category: ')
+    cat_no_list = [str(i) for i in range(1, len(categories) + 1)]
+    while choice not in cat_no_list:
+        print('Invalid choice, please try again.')
+        choice = input('Choose a category: ')
+    selected_category = categories[int(choice) - 1]
+    print(f'Category Selected: {selected_category}')
+    new_expense = {
+        'category' : selected_category,
+        'amount' : int(input('Amount\t: ')),
+        'note' : input('Note\t: '),
+        'date' : str(date.today())
+    }
+    data['expenses'].append(new_expense)
+    save_to_file()
+    print('New expense is added successfully!')
+
+def list_all_expenses():
+    print('List all expenses')
+    print('-----------------')
+    table = PrettyTable(['Category', 'Amount (MMK)', 'Note', 'Date'])
+    expense_list = data['expenses']
+    for exp in expense_list:
+        row_data = [exp['category'], exp['amount'], exp['note'], exp['date']]
+        table.add_row(row_data)
+    table.align['Amount (MMK)'] = 'r'
+    print(table)
+
+import matplotlib.pyplot as plt
+def visualize_expenses():
+    plt.title("Expense Chart")
+    categories = data['categories']
+    value = []
+    for cat in categories:
+        total = 0
+        for exp in data['expenses']:
+            if exp['category'] == cat:
+                total += exp['amount']
+        value.append(total)
+    plt.bar(categories, value) # x, y
+    plt.show()
+
+
+load_from_file()
+while True:
+    display()
+    ans = input('Enter your option: ')
+    while ans not in ['1','2','3','4','5','q']:
+        print('Invalid choice, please try again.')
+        ans = input('Enter your option: ')
+    print()
+    match ans:
+        case '1' : add_new_category()
+        case '2' : add_new_expenses()
+        case '3' : list_all_categories()
+        case '4' : list_all_expenses()
+        case '5' : visualize_expenses()
+        case 'q' : break
+    print()
